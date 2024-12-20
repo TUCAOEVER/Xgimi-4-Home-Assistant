@@ -12,7 +12,12 @@ from homeassistant.components.remote import (
     RemoteEntity,
 )
 
-from .const import DOMAIN
+from .const import (
+    DOMAIN,
+    CONF_COMMAND_PORT,
+    CONF_ADVANCE_PORT,
+    CONF_RESPONSE_PORT,
+)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -22,10 +27,18 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     host = config.get(CONF_HOST)
     name = config.get(CONF_NAME)
     token = config.get(CONF_TOKEN)
+    command_port = config.get(CONF_COMMAND_PORT)
+    advance_port = config.get(CONF_ADVANCE_PORT)
+    response_port = config.get(CONF_RESPONSE_PORT)
     unique_id = f"{name}-{token}"
 
-    xgimi_api = XgimiApi(ip=host, command_port=16735, advance_port=16750, alive_port=554,
-                         manufacturer_data=token)
+    xgimi_api = XgimiApi(
+        ip=host,
+        command_port=command_port,
+        advance_port=advance_port,
+        response_port=response_port,
+        manufacturer_data=token,
+    )
     async_add_entities([XgimiRemote(xgimi_api, name, unique_id)])
 
 
@@ -38,18 +51,25 @@ async def async_setup_entry(
     host = config[CONF_HOST]
     name = config[CONF_NAME]
     token = config[CONF_TOKEN]
+    command_port = config.get(CONF_COMMAND_PORT)
+    advance_port = config.get(CONF_ADVANCE_PORT)
+    response_port = config.get(CONF_RESPONSE_PORT)
 
     unique_id = config_entry.unique_id
     assert unique_id is not None
 
-    xgimi_api = XgimiApi(ip=host, command_port=16735, advance_port=16750, alive_port=554,
-                         manufacturer_data=token)
+    xgimi_api = XgimiApi(
+        ip=host,
+        command_port=command_port,
+        advance_port=advance_port,
+        response_port=response_port,
+        manufacturer_data=token,
+    )
     async_add_entities([XgimiRemote(xgimi_api, name, unique_id)])
 
 
 class XgimiRemote(RemoteEntity):
-    """An entity for Xgimi Projector
-    """
+    """An entity for Xgimi Projector"""
 
     def __init__(self, xgimi_api, name, unique_id):
         self.xgimi_api = xgimi_api

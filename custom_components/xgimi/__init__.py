@@ -1,4 +1,5 @@
 """Xgimi Projector Integration"""
+
 from __future__ import annotations
 
 from typing import Final
@@ -7,17 +8,30 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_TOKEN, Platform
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from .const import (
+    DOMAIN,
+    CONF_COMMAND_PORT,
+    CONF_ADVANCE_PORT,
+    CONF_RESPONSE_PORT,
+)
 
 PLATFORMS: Final[list[Platform]] = [
     Platform.REMOTE,
 ]
 
+
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up a config entry."""
     hass.data.setdefault(DOMAIN, {})
     config = {}
-    for k in [CONF_HOST, CONF_TOKEN, CONF_NAME]:
+    for k in [
+        CONF_HOST,
+        CONF_TOKEN,
+        CONF_NAME,
+        CONF_COMMAND_PORT,
+        CONF_ADVANCE_PORT,
+        CONF_RESPONSE_PORT,
+    ]:
         config[k] = config_entry.data.get(k)
 
     hass.data[DOMAIN][config_entry.entry_id] = config
@@ -25,6 +39,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     return True
+
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Unload a config entry."""

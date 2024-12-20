@@ -1,20 +1,18 @@
 import asyncudp
 import asyncio
+import subprocess
 from bluez_peripheral.util import get_message_bus
 from bluez_peripheral.advert import Advertisement
-from time import time
 
 
 class XgimiApi:
-    def __init__(self, ip, command_port, advance_port, alive_port, manufacturer_data) -> None:
+    def __init__(self, ip, command_port, advance_port, response_port, manufacturer_data) -> None:
         self.ip = ip
-        self.command_port = command_port  # 16735
-        self.advance_port = advance_port  # 16750
-        self.alive_port = alive_port  # 554
+        self.command_port = command_port
+        self.advance_port = advance_port
+        self.response_port = response_port
         self.manufacturer_data = manufacturer_data
         self._is_on = False
-        self.last_on = time()
-        self.last_off = time()
 
         self._command_dict = {
             "ok": "KEYPRESSES:49",
@@ -55,23 +53,25 @@ class XgimiApi:
         return self._is_on
 
     async def async_fetch_data(self):
-        if time() - self.last_on < 30:
-            self._is_on = True
-        elif time() - self.last_off < 30:
-            self._is_on = False
-        else:
-            alive = await self.async_check_alive()
-            self._is_on = alive
+        alive = await self.async_check_alive()
+        self._is_on = alive
 
     async def async_check_alive(self):
         try:
-            _, writer = await asyncio.open_connection(
-                self.ip, self.alive_port)
-            writer.close()
-            await writer.wait_closed()
-            return True
-        except ConnectionRefusedError:
-            return False
+            # 使用 subprocess 模块执行 ping 命令
+            process = await asyncio.create_subprocess_shell(
+                f"ping -c 1 {self.ip}",  # -c 1 表示发送一次 ICMP 请求
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+
+            stdout, stderr = await process.communicate()
+
+            # 检查返回码来判断是否成功
+            if process.returncode == 0:
+                return True
+            else:
+                return False
         except Exception:
             return False
 
@@ -81,23 +81,20 @@ class XgimiApi:
             localName="Bluetooth 4.0 RC",
             serviceUUIDs=[service_uuid],
             manufacturerData={company_id: bytes.fromhex(manufacturer_data)},
-            timeout=1,
-            duration=1000,
+            timeout=10,
+            duration=10,
             appearance=961,
         )
         await advert.register(bus)
 
     async def async_robust_ble_power_on(self, manufacturer_data: str, company_id: int = 0x0046, service_uuid: str = "1812"):
-        for i in range(10):
-            await self.async_ble_power_on(manufacturer_data, company_id, service_uuid)
-            await asyncio.sleep(1)
+        await self.async_ble_power_on(manufacturer_data, company_id, service_uuid)
 
     async def async_send_command(self, command) -> None:
         """Send a command to a device."""
         if command in self._command_dict:
             if command == "poweroff":
                 self._is_on = False
-                self.last_off = time()
             msg = self._command_dict[command]
             remote_addr = (self.ip, self.command_port)
             sock = await asyncudp.create_socket(remote_addr=remote_addr)
@@ -105,7 +102,6 @@ class XgimiApi:
             sock.close()
         elif command == "poweron":
             self._is_on = True
-            self.last_on = time()
             await self.async_robust_ble_power_on(self.manufacturer_data)
         else:
             msg = self._advance_command.replace("command_holder", command)
