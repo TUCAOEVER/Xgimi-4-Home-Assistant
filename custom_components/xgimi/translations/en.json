@@ -8,7 +8,7 @@
           "name": "TV Name",
           "host": "TV Host",
           "token": "BLE Token",
-          "response_port": "Response Port",
+          "pinging_port": "Pinging Port",
           "command_port": "Command Port",
           "advance_port": "Advance Port"
         }

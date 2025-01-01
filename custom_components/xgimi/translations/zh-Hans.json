@@ -3,14 +3,14 @@
     "step": {
       "user": {
         "title": "Xgimi Projector Remote",
-        "description": "请输入必要的信息",
+        "description": "在配置之前，请确保电视已经打开。",
         "data": {
           "name": "电视名称",
           "host": "电视 IP",
           "token": "蓝牙 Token",
-          "response_port": "相应端口",
-          "command_port": "命令接口",
-          "advance_port": "开发接口"
+          "pinging_port": "访问端口",
+          "command_port": "命令端口",
+          "advance_port": "开发端口"
         }
       }
     },
