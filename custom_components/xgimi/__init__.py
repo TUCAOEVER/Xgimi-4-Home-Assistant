@@ -1,4 +1,4 @@
-"""Xgimi Projector Integration"""
+"""Xgimi Projector Integration."""
 
 from __future__ import annotations
 
@@ -8,12 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_TOKEN, Platform
 from homeassistant.core import HomeAssistant
 
-from .const import (
-    DOMAIN,
-    CONF_COMMAND_PORT,
-    CONF_ADVANCE_PORT,
-    CONF_RESPONSE_PORT,
-)
+from .const import DOMAIN
 
 PLATFORMS: Final[list[Platform]] = [
     Platform.REMOTE,
@@ -28,9 +23,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         CONF_HOST,
         CONF_TOKEN,
         CONF_NAME,
-        CONF_COMMAND_PORT,
-        CONF_ADVANCE_PORT,
-        CONF_RESPONSE_PORT,
+        "pinging_port",
+        "command_port",
+        "advance_port",
     ]:
         config[k] = config_entry.data.get(k)
 
